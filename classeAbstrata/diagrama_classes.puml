@@ -1,0 +1,107 @@
+@startuml SistemaCadastro
+
+' Estilo do diagrama
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam classFontName Arial
+
+' Classe Data
+class Data {
+    -dia: int
+    -mes: int
+    -ano: int
+    +Data(dia: int, mes: int, ano: int)
+    +getDia(): int
+    +setDia(dia: int): void
+    +getMes(): int
+    +setMes(mes: int): void
+    +getAno(): int
+    +setAno(ano: int): void
+    +toString(): String
+}
+
+' Classe abstrata Pessoa
+abstract class Pessoa {
+    #nome: String
+    #nascimento: Data
+    +Pessoa(nome: String, nascimento: Data)
+    +getNome(): String
+    +setNome(nome: String): void
+    +getNascimento(): Data
+    +setNascimento(nascimento: Data): void
+    +{abstract} imprimeDados(): void
+}
+
+' Classe Cliente
+class Cliente {
+    -codigo: int
+    +Cliente(nome: String, nascimento: Data, codigo: int)
+    +getCodigo(): int
+    +setCodigo(codigo: int): void
+    +imprimeDados(): void
+}
+
+' Classe Funcionario
+class Funcionario {
+    #salario: float
+    +Funcionario(nome: String, nascimento: Data, salario: float)
+    +getSalario(): float
+    +setSalario(salario: float): void
+    +calculaImposto(): float
+    +imprimeDados(): void
+}
+
+' Classe Gerente
+class Gerente {
+    -area: String
+    +Gerente(nome: String, nascimento: Data, salario: float, area: String)
+    +getArea(): String
+    +setArea(area: String): void
+    +calculaImposto(): float
+    +imprimeDados(): void
+}
+
+' Classe CadastroPessoas
+class CadastroPessoas {
+    -pessoas: Pessoa[]
+    -qtdAtual: int
+    -CAPACIDADE_MAXIMA: int
+    +CadastroPessoas()
+    +cadastraPessoa(pess: Pessoa): void
+    +imprimeCadastro(): void
+    +getQtdAtual(): int
+}
+
+' Classe TestaCadastro
+class TestaCadastro {
+    +{static} main(args: String[]): void
+}
+
+' Relacionamentos
+Pessoa *-- Data : "tem"
+Cliente --|> Pessoa : "herda"
+Funcionario --|> Pessoa : "herda"
+Gerente --|> Funcionario : "herda"
+CadastroPessoas *-- Pessoa : "contém 1..*"
+TestaCadastro ..> CadastroPessoas : "usa"
+
+' Notas
+note right of Funcionario
+  Imposto é de 3% do salário
+end note
+
+note right of Gerente
+  Imposto é de 5% do salário
+end note
+
+note right of CadastroPessoas
+  Usar array
+end note
+
+note right of TestaCadastro
+  Cadastra um objeto de cada
+  subclasse de Pessoa e depois
+  imprime todo o cadastro
+end note
+
+@enduml 
