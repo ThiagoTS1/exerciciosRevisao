@@ -1,0 +1,227 @@
+@startuml VcRiquinho_Classes
+
+!define RECTANGLE class
+
+package "br.com.vcriquinho.model" {
+    
+    abstract class Cliente {
+        # nome: String
+        # email: String
+        # contas: List<Conta>
+        + Cliente(nome: String, email: String)
+        + {abstract} getDocumento(): String
+        + {abstract} getTipoCliente(): String
+        + adicionarConta(conta: Conta): void
+        + removerConta(conta: Conta): void
+        + getContas(): List<Conta>
+        + getNome(): String
+        + setNome(nome: String): void
+        + getEmail(): String
+        + setEmail(email: String): void
+    }
+    
+    class PessoaFisica {
+        - cpf: String
+        + PessoaFisica(nome: String, email: String, cpf: String)
+        + getDocumento(): String
+        + getTipoCliente(): String
+        + getCpf(): String
+        + setCpf(cpf: String): void
+    }
+    
+    class PessoaJuridica {
+        - cnpj: String
+        + PessoaJuridica(nome: String, email: String, cnpj: String)
+        + getDocumento(): String
+        + getTipoCliente(): String
+        + getCnpj(): String
+        + setCnpj(cnpj: String): void
+    }
+    
+    abstract class Conta {
+        # numero: String
+        # saldo: double
+        # titular: Cliente
+        + Conta(numero: String, titular: Cliente)
+        + {abstract} calcularRendimento(dias: int): double
+        + {abstract} calcularTaxaServico(rendimento: double): double
+        + {abstract} getTipoConta(): String
+        + depositar(valor: double): void
+        + sacar(valor: double): void
+        + getNumero(): String
+        + getSaldo(): double
+        + getTitular(): Cliente
+    }
+    
+    class ContaCorrente {
+        + ContaCorrente(numero: String, titular: Cliente)
+        + calcularRendimento(dias: int): double
+        + calcularTaxaServico(rendimento: double): double
+        + getTipoConta(): String
+    }
+    
+    class ContaCDI {
+        - TAXA_CDI_DIARIA: double
+        - TAXA_SERVICO: double
+        + ContaCDI(numero: String, titular: Cliente)
+        + calcularRendimento(dias: int): double
+        + calcularTaxaServico(rendimento: double): double
+        + getTipoConta(): String
+    }
+    
+    class ContaInvestimentoAutomatico {
+        - TAXA_SERVICO_PF: double
+        - TAXA_SERVICO_PJ: double
+        - produtosInvestidos: List<ProdutoInvestimento>
+        + ContaInvestimentoAutomatico(numero: String, titular: Cliente)
+        + investirEmProduto(produto: ProdutoInvestimento, valor: double): void
+        + calcularRendimento(dias: int): double
+        + calcularTaxaServico(rendimento: double): double
+        + getTipoConta(): String
+        + getProdutosInvestidos(): List<ProdutoInvestimento>
+    }
+    
+    interface ProdutoInvestimento {
+        + getNome(): String
+        + getDescricao(): String
+        + calcularRendimento(dias: int): double
+        + getTipoProduto(): String
+    }
+    
+    class ProdutoRendaFixa {
+        - nome: String
+        - descricao: String
+        - rendimentoMensal: double
+        - periodoCarencia: int
+        + ProdutoRendaFixa(nome: String, descricao: String, rendimentoMensal: double, periodoCarencia: int)
+        + getNome(): String
+        + getDescricao(): String
+        + calcularRendimento(dias: int): double
+        + getTipoProduto(): String
+        + getRendimentoMensal(): double
+        + setRendimentoMensal(rendimentoMensal: double): void
+        + getPeriodoCarencia(): int
+        + setPeriodoCarencia(periodoCarencia: int): void
+    }
+    
+    class ProdutoRendaVariavel {
+        - nome: String
+        - descricao: String
+        - rendimentoMensalEsperado: double
+        + ProdutoRendaVariavel(nome: String, descricao: String, rendimentoMensalEsperado: double)
+        + getNome(): String
+        + getDescricao(): String
+        + calcularRendimento(dias: int): double
+        + getTipoProduto(): String
+        + getRendimentoMensalEsperado(): double
+        + setRendimentoMensalEsperado(rendimentoMensalEsperado: double): void
+    }
+}
+
+package "br.com.vcriquinho.service" {
+    
+    class ClienteService {
+        - clientes: Map<String, Cliente>
+        + cadastrarCliente(cliente: Cliente): void
+        + buscarCliente(documento: String): Cliente
+        + listarClientes(): List<Cliente>
+        + buscarClientesPorTipo(tipo: String): List<Cliente>
+        + atualizarCliente(documento: String, novoNome: String, novoEmail: String): void
+        + removerCliente(documento: String): void
+        + adicionarConta(documento: String, conta: Conta): void
+        + removerConta(documento: String, conta: Conta): void
+        + listarContasCliente(documento: String): List<Conta>
+    }
+    
+    class ProdutoService {
+        - produtos: Map<String, ProdutoInvestimento>
+        + cadastrarProduto(produto: ProdutoInvestimento): void
+        + buscarProduto(nome: String): ProdutoInvestimento
+        + listarProdutos(): List<ProdutoInvestimento>
+        + listarProdutosPorTipo(tipo: String): List<ProdutoInvestimento>
+        + atualizarProduto(nome: String, novoProduto: ProdutoInvestimento): void
+        + removerProduto(nome: String): void
+    }
+    
+    class SimulacaoService {
+        + PERIODOS_DISPONIVEIS: int[]
+        + simularRendimento(cliente: Cliente, periodo: int): ResultadoSimulacao
+        + simularTodosPeriodos(cliente: Cliente): List<ResultadoSimulacao>
+        
+        class ResultadoSimulacao {
+            - periodo: int
+            - rendimentoTotal: double
+            - taxaServicoTotal: double
+            - detalhesContas: List<DetalheConta>
+            - avisos: List<String>
+            + getPeriodo(): int
+            + getRendimentoTotal(): double
+            + setRendimentoTotal(rendimentoTotal: double): void
+            + getTaxaServicoTotal(): double
+            + setTaxaServicoTotal(taxaServicoTotal: double): void
+            + getDetalhesContas(): List<DetalheConta>
+            + getAvisos(): List<String>
+            + adicionarDetalheConta(detalhe: DetalheConta): void
+            + adicionarAviso(aviso: String): void
+        }
+        
+        class DetalheConta {
+            - numeroConta: String
+            - tipoConta: String
+            - saldo: double
+            - rendimento: double
+            - taxaServico: double
+            - observacoes: String
+            + DetalheConta(numeroConta: String, tipoConta: String, saldo: double, rendimento: double, taxaServico: double, observacoes: String)
+            + getNumeroConta(): String
+            + getTipoConta(): String
+            + getSaldo(): double
+            + getRendimento(): double
+            + getTaxaServico(): double
+            + getObservacoes(): String
+        }
+    }
+}
+
+package "br.com.vcriquinho" {
+    class Main {
+        - clienteService: ClienteService
+        - produtoService: ProdutoService
+        - simulacaoService: SimulacaoService
+        - scanner: Scanner
+        - df: DecimalFormat
+        + main(args: String[]): void
+        - exibirMenuPrincipal(): void
+        - menuGerenciarClientes(): void
+        - menuGerenciarProdutos(): void
+        - menuSimulacoes(): void
+        - inicializarDadosExemplo(): void
+    }
+}
+
+' Relacionamentos de Herança
+Cliente <|-- PessoaFisica
+Cliente <|-- PessoaJuridica
+Conta <|-- ContaCorrente
+Conta <|-- ContaCDI
+Conta <|-- ContaInvestimentoAutomatico
+
+' Relacionamentos de Implementação
+ProdutoInvestimento <|.. ProdutoRendaFixa
+ProdutoInvestimento <|.. ProdutoRendaVariavel
+
+' Relacionamentos de Associação
+Cliente "1" *-- "0..*" Conta : possui
+Conta "1" --> "1" Cliente : pertence a
+ContaInvestimentoAutomatico "1" *-- "0..*" ProdutoInvestimento : investe em
+SimulacaoService "1" *-- "1" ResultadoSimulacao : gera
+ResultadoSimulacao "1" *-- "0..*" DetalheConta : contém
+Main "1" --> "1" ClienteService : usa
+Main "1" --> "1" ProdutoService : usa
+Main "1" --> "1" SimulacaoService : usa
+
+' Relacionamentos de Agregação
+ClienteService "1" *-- "0..*" Cliente : gerencia
+ProdutoService "1" *-- "0..*" ProdutoInvestimento : gerencia
+
+@enduml 
