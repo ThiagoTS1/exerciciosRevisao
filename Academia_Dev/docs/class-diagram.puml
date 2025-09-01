@@ -1,0 +1,286 @@
+@startuml AcademiaDev Class Diagram
+
+!define RECTANGLE class
+
+package "com.academiadev.model" {
+    
+    abstract class User {
+        -name: String
+        -email: String
+        +User(name: String, email: String)
+        +getName(): String
+        +setName(name: String): void
+        +getEmail(): String
+        +setEmail(email: String): void
+        +equals(Object): boolean
+        +hashCode(): int
+        +toString(): String
+    }
+    
+    class Admin {
+        +Admin(name: String, email: String)
+        +toString(): String
+    }
+    
+    class Student {
+        -subscriptionPlan: SubscriptionPlan
+        -enrollments: List<Enrollment>
+        +Student(name: String, email: String, plan: SubscriptionPlan)
+        +getSubscriptionPlan(): SubscriptionPlan
+        +setSubscriptionPlan(plan: SubscriptionPlan): void
+        +getEnrollments(): List<Enrollment>
+        +addEnrollment(enrollment: Enrollment): void
+        +removeEnrollment(enrollment: Enrollment): void
+        +getActiveEnrollmentsCount(): int
+        +canEnrollInNewCourse(): boolean
+        +toString(): String
+    }
+    
+    interface SubscriptionPlan {
+        +getPlanName(): String
+        +getMaxEnrollments(): int
+        +canEnroll(currentEnrollments: int): boolean
+    }
+    
+    class BasicPlan {
+        +getPlanName(): String
+        +getMaxEnrollments(): int
+        +canEnroll(currentEnrollments: int): boolean
+        +toString(): String
+    }
+    
+    class PremiumPlan {
+        +getPlanName(): String
+        +getMaxEnrollments(): int
+        +canEnroll(currentEnrollments: int): boolean
+        +toString(): String
+    }
+    
+    class Course {
+        -title: String
+        -description: String
+        -instructorName: String
+        -durationInHours: int
+        -difficultyLevel: DifficultyLevel
+        -status: CourseStatus
+        +Course(title: String, description: String, instructorName: String, durationInHours: int, difficultyLevel: DifficultyLevel)
+        +getTitle(): String
+        +setTitle(title: String): void
+        +getDescription(): String
+        +setDescription(description: String): void
+        +getInstructorName(): String
+        +setInstructorName(instructorName: String): void
+        +getDurationInHours(): int
+        +setDurationInHours(durationInHours: int): void
+        +getDifficultyLevel(): DifficultyLevel
+        +setDifficultyLevel(difficultyLevel: DifficultyLevel): void
+        +getStatus(): CourseStatus
+        +setStatus(status: CourseStatus): void
+        +equals(Object): boolean
+        +hashCode(): int
+        +toString(): String
+    }
+    
+    class Enrollment {
+        -student: Student
+        -course: Course
+        -progress: int
+        -enrollmentDate: LocalDateTime
+        +Enrollment(student: Student, course: Course)
+        +getStudent(): Student
+        +getCourse(): Course
+        +getProgress(): int
+        +setProgress(progress: int): void
+        +getEnrollmentDate(): LocalDateTime
+        +equals(Object): boolean
+        +hashCode(): int
+        +toString(): String
+    }
+    
+    class SupportTicket {
+        -title: String
+        -message: String
+        -user: User
+        -creationDate: LocalDateTime
+        -processed: boolean
+        +SupportTicket(title: String, message: String, user: User)
+        +getTitle(): String
+        +getMessage(): String
+        +getUser(): User
+        +getCreationDate(): LocalDateTime
+        +isProcessed(): boolean
+        +markAsProcessed(): void
+        +equals(Object): boolean
+        +hashCode(): int
+        +toString(): String
+    }
+    
+    enum CourseStatus {
+        ACTIVE
+        INACTIVE
+    }
+    
+    enum DifficultyLevel {
+        BEGINNER
+        INTERMEDIATE
+        ADVANCED
+    }
+}
+
+package "com.academiadev.service" {
+    
+    class CourseService {
+        +activateCourse(course: Course): void
+        +deactivateCourse(course: Course): void
+        +getCoursesByDifficultyLevel(courses: List<Course>, level: DifficultyLevel): List<Course>
+        +getActiveCourses(courses: List<Course>): List<Course>
+        +getUniqueInstructors(courses: List<Course>): List<String>
+        +findCourseByTitle(courses: List<Course>, title: String): Course
+    }
+    
+    class EnrollmentService {
+        +enrollStudentInCourse(student: Student, course: Course): void
+        +cancelEnrollment(student: Student, course: Course): void
+        +updateProgress(student: Student, course: Course, newProgress: int): void
+        +getStudentEnrollments(student: Student): List<Enrollment>
+        +findEnrollment(student: Student, course: Course): Optional<Enrollment>
+        +isStudentEnrolledInCourse(student: Student, course: Course): boolean
+        +getStudentWithMostEnrollments(students: List<Student>): Optional<Student>
+    }
+    
+    class SupportService {
+        -ticketQueue: Queue<SupportTicket>
+        +SupportService()
+        +createTicket(title: String, message: String, user: User): void
+        +getNextTicket(): Optional<SupportTicket>
+        +hasPendingTickets(): boolean
+        +getPendingTicketsCount(): int
+        +getTicketQueue(): Queue<SupportTicket>
+    }
+    
+    class ReportService {
+        +getCoursesByDifficultyLevel(courses: List<Course>, level: DifficultyLevel): List<Course>
+        +getUniqueInstructors(courses: List<Course>): List<String>
+        +groupStudentsBySubscriptionPlan(students: List<Student>): Map<String, List<Student>>
+        +getAverageProgress(students: List<Student>): double
+        +getStudentWithMostEnrollments(students: List<Student>): Optional<Student>
+        +getCourseCountByDifficultyLevel(courses: List<Course>): Map<DifficultyLevel, Long>
+        +getCourseCountByStatus(courses: List<Course>): Map<CourseStatus, Long>
+    }
+}
+
+package "com.academiadev.exception" {
+    
+    class EnrollmentException {
+        +EnrollmentException(message: String)
+        +EnrollmentException(message: String, cause: Throwable)
+    }
+    
+    class CourseException {
+        +CourseException(message: String)
+        +CourseException(message: String, cause: Throwable)
+    }
+}
+
+package "com.academiadev.util" {
+    
+    class InitialData {
+        +{static} createInitialCourses(): List<Course>
+        +{static} createInitialUsers(): List<User>
+        +{static} getStudentsFromUsers(users: List<User>): List<Student>
+        +{static} getAdminsFromUsers(users: List<User>): List<Admin>
+        +{static} createInitialEnrollments(students: List<Student>, courses: List<Course>): void
+    }
+    
+    class GenericCsvExporter {
+        +{static} exportToCsv(data: List<T>, selectedColumns: List<String>): String
+        +{static} exportToCsv(data: List<T>): String
+        -{static} getFieldValue(obj: Object, fieldName: String): String
+    }
+}
+
+package "com.academiadev" {
+    
+    class AcademiaDevApp {
+        -courses: List<Course>
+        -users: List<User>
+        -students: List<Student>
+        -admins: List<Admin>
+        -currentUser: User
+        -scanner: Scanner
+        -courseService: CourseService
+        -enrollmentService: EnrollmentService
+        -supportService: SupportService
+        -reportService: ReportService
+        +{static} main(args: String[]): void
+        -initializeApp(): void
+        -showMainMenu(): void
+        -login(): void
+        -showAdminMenu(): void
+        -showStudentMenu(): void
+        -manageCourseStatus(): void
+        -manageStudentPlans(): void
+        -processSupportTickets(): void
+        -showReports(): void
+        -exportData(): void
+        -enrollInCourse(): void
+        -showEnrollments(): void
+        -updateProgress(): void
+        -cancelEnrollment(): void
+        -showCourseCatalog(): void
+        -createSupportTicket(): void
+        -logout(): void
+        -getIntInput(): int
+    }
+}
+
+' Relationships
+User <|-- Admin
+User <|-- Student
+SubscriptionPlan <|.. BasicPlan
+SubscriptionPlan <|.. PremiumPlan
+Student o-- SubscriptionPlan
+Student o-- Enrollment
+Course o-- Enrollment
+User o-- SupportTicket
+Enrollment o-- Course
+Enrollment o-- Student
+
+' Service relationships
+CourseService ..> Course
+CourseService ..> CourseStatus
+CourseService ..> DifficultyLevel
+EnrollmentService ..> Student
+EnrollmentService ..> Course
+EnrollmentService ..> Enrollment
+EnrollmentService ..> EnrollmentException
+SupportService o-- SupportTicket
+ReportService ..> Course
+ReportService ..> Student
+ReportService ..> Enrollment
+ReportService ..> DifficultyLevel
+ReportService ..> CourseStatus
+
+' Exception relationships
+EnrollmentService ..> EnrollmentException
+CourseService ..> CourseException
+
+' Utility relationships
+InitialData ..> Course
+InitialData ..> User
+InitialData ..> Student
+InitialData ..> Admin
+InitialData ..> Enrollment
+InitialData ..> BasicPlan
+InitialData ..> PremiumPlan
+GenericCsvExporter ..> Object
+
+' Main app relationships
+AcademiaDevApp o-- CourseService
+AcademiaDevApp o-- EnrollmentService
+AcademiaDevApp o-- SupportService
+AcademiaDevApp o-- ReportService
+AcademiaDevApp o-- InitialData
+AcademiaDevApp o-- GenericCsvExporter
+
+@enduml
